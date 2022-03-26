@@ -1,0 +1,113 @@
+%{
+#include <assert.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "ms_parser.tab.h"
+#include "cgen.h"
+
+int line_num = 1;
+
+%} 
+
+BOOL	(?i:true)|(?i:false)
+IDENT 	[a-zA-Z_][0-9a-zA-Z_]*
+DIGIT  	[0-9]
+NUMBER  (([1-9]+[0-9]*)|0)
+DECIMAL {NUMBER}("."{DIGIT}*)?
+REAL    {DECIMAL}([eE][+-]?{NUMBER})?
+ESC		[\n|\t|\r|\\|\"]
+STRING  ([\']([^\\\"\']|{ESC})[\'])|([\"]([^\\\"\']|{ESC})*[\"])
+
+%x comment
+
+%%
+						
+						
+start		  			{ printf("Line %d -> token KW_START: %s\n", yylineno,yytext); return KW_START; }
+const 		  			{ printf("Line %d -> token KW_CONST: %s\n", yylineno,yytext); return KW_CONST; }
+false  		  			{ printf("Line %d -> token KW_FALSE: %s\n", yylineno,yytext); return KW_FALSE; }      
+function 				{ printf("Line %d -> token KW_FUNCTION: %s\n", yylineno,yytext); return KW_FUNCTION; }      
+void 		  			{ printf("Line %d -> token KW_VOID: %s\n", yylineno,yytext); return KW_VOID; }      
+break 		  			{ printf("Line %d -> token KW_BREAK: %s\n", yylineno,yytext); return KW_BREAK; }      
+true 		  			{ printf("Line %d -> token KW_TRUE: %s\n", yylineno,yytext); return KW_TRUE; }      
+continue 				{ printf("Line %d -> token KW_CONTINUE: %s\n", yylineno,yytext); return KW_CONTINUE; }      
+null 		  			{ printf("Line %d -> token KW_NULL: %s\n", yylineno,yytext); return KW_NULL; }      
+var 		  			{ printf("Line %d -> token KW_VAR: %s\n", yylineno,yytext); return KW_VAR; }      
+
+number          		{ printf("Line %d -> token KW_INT: %s\n", yylineno,yytext); return KW_NUMBER; }
+string        			{ printf("Line %d -> token KW_STRING: %s\n", yylineno,yytext); return KW_STRING; }
+boolean        			{ printf("Line %d -> token KW_BOOL: %s\n", yylineno,yytext); return KW_BOOL; }
+		
+		
+else					{ printf("Line %d -> token KW_ELSE: %s\n", yylineno,yytext); return KW_ELSE; }
+if						{ printf("Line %d -> token KW_IF: %s\n", yylineno,yytext); return KW_IF; }
+while					{ printf("Line %d -> token KW_WHILE: %s\n", yylineno,yytext); return KW_WHILE; }
+
+
+return					{ printf("Line %d -> token KW_RETURN: %s\n", yylineno,yytext); return KW_RETURN; }
+and						{ printf("Line %d -> token OP_AND: %s\n", yylineno,yytext); return OP_AND; }
+or						{ printf("Line %d -> token OP_OR: %s\n", yylineno,yytext); return OP_OR; }
+not						{ printf("Line %d -> token OP_NOT: %s\n", yylineno,yytext); return OP_NOT; }
+		
+readString				{ printf("Line %d -> token READSTRING: %s\n", yylineno,yytext); return READSTRING; }
+readNumber				{ printf("Line %d -> token READNUMBER: %s\n", yylineno,yytext); return READNUMBER; }
+		
+writeString				{ printf("Line %d -> token WRITESTRING: %s\n", yylineno,yytext); return WRITESTRING; }
+writeNumber				{ printf("Line %d -> token WRITENUMBER: %s\n", yylineno,yytext); return WRITENUMBER; }
+ 
+
+{BOOL}				{ printf("Line %d -> token BOOL: %s\n", yylineno,yytext);	 return BOOL; }
+ 		
+{STRING} 			{ printf("Line %d -> token STRING: %s\n", yylineno,yytext);	return STRING;}
+ 		
+{IDENT} 			{ printf("Line %d -> token IDENT: %s\n", yylineno,yytext); return IDENT;}
+	 		
+{NUMBER} 			{ printf("Line %d -> token POSINT: %s\n", yylineno,yytext); return POSINT;}
+			 		
+{REAL}			    { printf("Line %d -> token REAL : %s\n", yylineno,yytext); return REAL;}
+
+
+"="		      			{ printf("Line %d -> token ASSIGN: %s\n", yylineno,yytext); return ASSIGN; }
+"=>"         			{ printf("Line %d -> token ARROW: %s\n", yylineno,yytext); return ARROW; }
+":"	        			{ printf("Line %d -> token OP_COLON: %s\n", yylineno,yytext); return OP_COLON; }
+","           			{ printf("Line %d -> token COMMA: %s\n", yylineno,yytext); return COMMA; }
+";"						{ printf("Line %d -> token SEMICOLON: %s\n", yylineno,yytext); return SEMICOLON; }
+"."						{ printf("Line %d -> token DOT: %s\n", yylineno,yytext); return DOT; }
+")"						{ printf("Line %d -> token RIGHT_PARENTHESIS: %s\n", yylineno,yytext); return RIGHT_PARENTHESIS; }
+"("						{ printf("Line %d -> token LEFT_PARENTHESIS: %s\n", yylineno,yytext); return LEFT_PARENTHESIS; }
+	
+"+"						{ printf("Line %d -> token OP_PLUS: %s\n", yylineno,yytext); return OP_PLUS; }
+"-"						{ printf("Line %d -> token OP_MINUS: %s\n", yylineno,yytext); return OP_MINUS; }
+"*"						{ printf("Line %d -> token OP_MULT: %s\n", yylineno,yytext); return OP_MULT; }
+"/"						{ printf("Line %d -> token OP_DIV: %s\n", yylineno,yytext); return OP_DIV; }
+"%"						{ printf("Line %d -> token OP_REM: %s\n", yylineno,yytext); return OP_REM; }
+"**"               	 	{ printf("Line %d -> token OP_PWR: %s\n", yylineno,yytext); return OP_PWR; }
+
+"!="					{ printf("Line %d -> token OP_NE: %s\n", yylineno,yytext); return OP_NE; }
+"<"						{ printf("Line %d -> token OP_LT: %s\n", yylineno,yytext); return OP_LT; }
+	
+"]"						{ printf("Line %d -> token RIGHT_SQ_BRACKET: %s\n", yylineno,yytext); return RIGHT_SQ_BRACKET; }
+"["						{ printf("Line %d -> token LEFT_SQ_BRACKET: %s\n", yylineno,yytext); return LEFT_SQ_BRACKET; }
+	
+"}"						{ printf("Line %d -> token RIGHT_CUR_BRACKET: %s\n", yylineno,yytext); return RIGHT_CUR_BRACKET; }
+"{"						{ printf("Line %d -> token LEFT_CUR_BRACKET: %s\n", yylineno,yytext); return LEFT_CUR_BRACKET; }					
+	
+	
+"//"[^\n]*  			/* eat line comments */{ printf("Line %d -> --line comment\n", yylineno); }
+
+"/*"					{ printf("Line %d -> Comment BEGIN (*\n", yylineno); BEGIN(comment); }
+<comment>[^*\n]*        /* eat anything that's not a '*' */
+<comment>"*"+[^*)\n]*   /* eat up '*'s not followed by ')'s */
+<comment>\n             ++line_num;
+<comment>"*"+"/"        { printf("Line %d -> Comment END *)\n", yylineno); BEGIN(INITIAL); }
+
+
+[ \r\t]+				/* skip whitespace */
+\n 						++line_num;
+<<EOF>> 				return EOF;
+
+.            { printf ("lexical error: unrecognized literal '%s'\n", yytext);}
+
+%%
